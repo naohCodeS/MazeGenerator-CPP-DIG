@@ -6,7 +6,7 @@
 using namespace std;
 
 enum class KIND{PATH, WALL}; //セルの種類
-enum class DIR{F,B,L,R}; //forward, back, left, right
+enum class DIR{F,B,L,R,MAX_DIR}; //forward, back, left, right
 
 using Maze = vector<vector<KIND>>;
 
@@ -50,7 +50,7 @@ Maze generateMaze(int size_x, int size_y){
     mt19937 gen(seed());
     startCord.insert({1,1});//スタート座標候補を初期化
 
-    while(startCord.size() != 0){
+    while(startCord.size() != 0){  
         //スタート位置の決定
         auto ite = startCord.begin();
         uniform_int_distribution<> startCordRand(0,startCord.size()-1);
@@ -65,24 +65,10 @@ Maze generateMaze(int size_x, int size_y){
         while(1){
             if(cantMove(maze, now, size_x, size_y)) break;
             if(startCord.find(now)==startCord.end()) startCord.insert(now);
-            uniform_int_distribution<> dirRand(0, sizeof(DIR)-1);
+            uniform_int_distribution<> dirRand(0, (int)DIR::MAX_DIR-1);
             DIR dir = (DIR)dirRand(gen);
-            if(dir == DIR::F){
-                if(!canMoveTo(maze, now, dir, size_x, size_y)) dir = DIR::B; //dir方向に進めない場合、進む方向を回転する
-                else moveTo(maze, &now, dir); //掘る
-            }
-            if(dir == DIR::B){
-                if(!canMoveTo(maze, now, dir, size_x, size_y)) dir = DIR::L;
-                else moveTo(maze, &now, dir);
-            }
-            if(dir == DIR::L){
-                if(!canMoveTo(maze, now, dir, size_x, size_y)) dir = DIR::R;
-                else moveTo(maze, &now, dir);
-            }
-            if(dir == DIR::R){
-                if(!canMoveTo(maze, now, dir, size_x, size_y)) dir = DIR::F;
-                else moveTo(maze, &now, dir);
-            }
+            if(!canMoveTo(maze, now, dir, size_x, size_y)) dir = (DIR)(((int)dir+1)%(int)DIR::MAX_DIR);
+            else moveTo(maze, &now, dir);
         }
     }
     return maze;
